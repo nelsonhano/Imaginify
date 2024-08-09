@@ -32,11 +32,6 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-            <header className='w-20'>
-              <SignedOut>
-                <SignInButton />
-              </SignedOut>
-            </header>
               <main>{children}</main>
             </ThemeProvider>
           </body>
