@@ -9,9 +9,9 @@ import { createUser, deleteUser, updateUser } from "@/lib/actions/user.actions";
 
 export async function POST(req: Request) {
     // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
-    const CLERK_ENCRYPTION_KEY = process.env.CLERK_ENCRYPTION_KEY;
+    const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
-    if (!CLERK_ENCRYPTION_KEY) {
+    if (!WEBHOOK_SECRET) {
         throw new Error(
             "Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local"
         );
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const body = JSON.stringify(payload);
 
     // Create a new Svix instance with your secret.
-    const wh = new Webhook(CLERK_ENCRYPTION_KEY);
+    const wh = new Webhook(WEBHOOK_SECRET);
 
     let evt: WebhookEvent;
 
@@ -61,10 +61,16 @@ export async function POST(req: Request) {
     if (eventType === "user.created") {
         const { id, email_addresses, image_url, first_name, last_name, username } = evt.data;
 
+    if (!id || !email_addresses) {
+        return new Response('Error occured -- missing data', {
+            status: 400
+        })
+    }
+
         const user = {
             clerkId: id,
             email: email_addresses[0].email_address,
-            username: username!,
+            username: username,
             firstName: first_name,
             lastName: last_name,
             photo: image_url,
@@ -74,9 +80,7 @@ export async function POST(req: Request) {
 
         // Set public metadata
         if (newUser) {
-            const client = clerkClient();
-            
-            await client.users.updateUserMetadata(id, {
+            await clerkClient.users.updateUserMetadata(id, {
                 publicMetadata: {
                     userId: newUser._id,
                 },
@@ -84,6 +88,12 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json({ message: "OK", user: newUser });
+    }
+    console.log(`Webhook with and ID of ${id} and type of ${eventType}`)
+    console.log('Webhook body:', body)
+
+    if (evt.type === 'user.created') {
+        console.log('userId:', evt.data.id)
     }
 
     // UPDATE
