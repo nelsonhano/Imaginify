@@ -1,5 +1,6 @@
 import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
@@ -33,6 +34,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <main>{children}</main>
+            <Toaster />
             </ThemeProvider>
           </body>
         </html>
