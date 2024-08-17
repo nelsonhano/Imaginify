@@ -1,93 +1,94 @@
-"use server";
-
+import { Stripe } from 'stripe';
 import { revalidatePath } from "next/cache";
 
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
+import Image from '../database/models/image.model';
+import { redirect } from 'next/navigation';
 
-// CREATE
-export async function createUser(user: CreateUserParams) {
+const populateUser = (query: any) => query.populate({
+    path: 'author',
+    model: User,
+    select: '_id firstName lastName'
+})
+
+//ADD IMAGE
+export async function addImage({ image, userId, path}: AddImageParams) {
     try {
         await connectToDatabase();
 
-        const newUser = await User.create(user);
-
-        return JSON.parse(JSON.stringify(newUser));
-    } catch (error) {
-        handleError(error);
-    }
-}
-
-// READ
-export async function getUserById(userId: string) {
-    try {
-        await connectToDatabase();
-
-        const user = await User.findOne({ clerkId: userId });
-
-        if (!user) throw new Error("User not found");
-
-        return JSON.parse(JSON.stringify(user));
-    } catch (error) {
-        handleError(error);
-    }
-}
-
-// UPDATE
-export async function updateUser(clerkId: string, user: UpdateUserParams) {
-    try {
-        await connectToDatabase();
-
-        const updatedUser = await User.findOneAndUpdate({ clerkId }, user, {
-            new: true,
+        const author = await User.findById(userId);
+        
+        if (!author) {
+            throw new Error("User not Found");
+        }
+         
+        const newImage = await Image.create({
+            ...image,
+            author: author._id,
         });
-
-        if (!updatedUser) throw new Error("User update failed");
-
-        return JSON.parse(JSON.stringify(updatedUser));
+        console.log(newImage);
+        
+        revalidatePath(path)
+        
+        return JSON.parse(JSON.stringify(newImage));
     } catch (error) {
-        handleError(error);
+        handleError(error)
     }
 }
 
-// DELETE
-export async function deleteUser(clerkId: string) {
-    try {
+//UPDATE IMAGE
+export async function updateImage({ image, userId, path }: UpdateImageParams) {
+    try { 
         await connectToDatabase();
 
-        // Find user to delete
-        const userToDelete = await User.findOne({ clerkId });
+        const imageToUpdate = await Image.findById(image._id);
 
-        if (!userToDelete) {
-            throw new Error("User not found");
+        if (!imageToUpdate || imageToUpdate.author.toHexString() !== userId) {
+            throw new Error("Unauthorized or Image Not Found");
         }
 
-        // Delete user
-        const deletedUser = await User.findByIdAndDelete(userToDelete._id);
-        revalidatePath("/");
+        const updateImage = await Image.findByIdAndUpdate(
+            imageToUpdate._id,
+            image,
+            {new: true}
+        )
 
-        return deletedUser ? JSON.parse(JSON.stringify(deletedUser)) : null;
+        revalidatePath(path)
+
+        return JSON.parse(JSON.stringify(updateImage ));
     } catch (error) {
-        handleError(error);
+        handleError(error)
     }
 }
 
-// USE CREDITS
-export async function updateCredits(userId: string, creditFee: number) {
+
+//DELETE IMAGE
+export async function deleteImage(imageId: string) {
     try {
         await connectToDatabase();
 
-        const updatedUserCredits = await User.findOneAndUpdate(
-            { _id: userId },
-            { $inc: { creditBalance: creditFee } },
-            { new: true }
-        )
-
-        if (!updatedUserCredits) throw new Error("User credits update failed");
-
-        return JSON.parse(JSON.stringify(updatedUserCredits));
+        await Image.findByIdAndDelete(imageId);
     } catch (error) {
-        handleError(error);
+        handleError(error)
+    } finally{
+        redirect('/')
+    }
+}
+//GET IMAGE
+export async function getImageById(imageId: string) {
+    try {
+        await connectToDatabase();
+
+        const image = await populateUser(Image.findById(imageId));
+        
+        if (!image) throw new Error("Image Not Found");
+        
+        // revalidatePath(path)
+
+        return JSON.parse(JSON.stringify(image));
+    } catch (error) {
+        handleError(error)
     }
 }

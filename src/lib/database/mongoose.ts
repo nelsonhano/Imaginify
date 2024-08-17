@@ -7,26 +7,27 @@ interface MongooseConnection {
     promise: Promise<Mongoose> | null;
 }
 
-let catched: MongooseConnection = (global as any).mongoose
+let cached: MongooseConnection = (global as any).mongoose || { conn: null, promise: null };
 
-if (!catched) {
-    catched = (global as any).mongoose = {
-        conn: null, promise: null
+export const connectToDatabase = async (): Promise<Mongoose> => {
+    if (cached.conn) return cached.conn;
+    console.log('MongoDB URL', process.env.MONGODB_URL);
+
+    if (!MONGODB_URL) {
+        throw new Error("Missing MongoDB URL");
     }
-}
 
-export const connectToDatabase = async () => {
-    if (catched.conn) return catched.conn;
-
-    if (!MONGODB_URL) throw new Error("Missing MongoDB URL");
-    
-    catched.promise = 
-        catched.promise || 
-        mongoose.connect( MONGODB_URL, { 
-            dbName: 'Imaginify', bufferCommands: false
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(MONGODB_URL, {
+            dbName: 'Imaginify',
+            bufferCommands: false,
+            // Removed useNewUrlParser and useUnifiedTopology as they are not needed in Mongoose 6+
         });
+    }
 
-        catched.conn = await catched.promise;
+    cached.conn = await cached.promise;
+    return cached.conn;
+};
 
-        return catched.conn;
-}
+// Ensure the mongoose connection is stored globally
+(global as any).mongoose = cached;

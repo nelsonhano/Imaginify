@@ -27,7 +27,7 @@ export default function MediaUploader({
         ...prevState,
         publicId: result?.info?.public_id,
         width: result?.info?.height,
-        secureUrl: result?.info?.secure_url
+        secureURL: result?.info?.secureURL
       }));
 
       onValueChange(result?.info?.public_id)
@@ -59,7 +59,7 @@ export default function MediaUploader({
     >
       {({open}) => (
         <div className="flex flex-col gap-4">
-          <h3 className="h3-hold text-dark-600">
+          <h3 className="h3-bold text-dark-600">
             Original
           </h3>
 
@@ -82,7 +82,7 @@ export default function MediaUploader({
                 <div className="media-uploader_cta-image">
                   <Image 
                     src='/assets/icons/add.svg'
-                    alt='Add Image'
+                    alt='Add_Image'
                     width={24}
                     height={24}
                   />

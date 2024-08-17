@@ -18,7 +18,7 @@ function SiderBar() {
 
         <nav className="siderbar-nav">
           <SignedIn>
-            <ul className="siderbar-nav_elements">
+            <ul className="siderbar-nav_elements ">
               {navLinks.slice(0,6).map((link) => {
                 const isActive = link.route === pathname;
 
