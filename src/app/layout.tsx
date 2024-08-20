@@ -27,15 +27,15 @@ export default function RootLayout({
       <ClerkProvider>
         <html lang="en">
           <body className={cn('font-IBMPlex antialiased', IBMPlex.variable)}>
-            <ThemeProvider
+            {/* <ThemeProvider
               attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
-            >
+            > */}
               <main>{children}</main>
             <Toaster />
-            </ThemeProvider>
+            {/* </ThemeProvider> */}
           </body>
         </html>
       </ClerkProvider>
