@@ -27,7 +27,7 @@ export default function MediaUploader({
         ...prevState,
         publicId: result?.info?.public_id,
         width: result?.info?.height,
-        secureURL: result?.info?.secureURL
+        secureURL: result?.info?.secure_url 
       }));
 
       onValueChange(result?.info?.public_id)

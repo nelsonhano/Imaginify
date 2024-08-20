@@ -1,4 +1,5 @@
 import mongoose, { Mongoose } from "mongoose";
+require('dotenv').config()
 
 const MONGODB_URL = process.env.MONGODB_URL;
 
@@ -11,7 +12,6 @@ let cached: MongooseConnection = (global as any).mongoose || { conn: null, promi
 
 export const connectToDatabase = async (): Promise<Mongoose> => {
     if (cached.conn) return cached.conn;
-    console.log('MongoDB URL', process.env.MONGODB_URL);
 
     if (!MONGODB_URL) {
         throw new Error("Missing MongoDB URL");

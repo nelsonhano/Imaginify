@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { useForm } from "react-hook-form"
 import * as React from "react"
+import { useEffect } from "react"
 import { z } from "zod"
 import { useTransition } from 'react'
 import {
@@ -35,6 +36,7 @@ import TransformedImage from "./TransformedImage"
 import { getCldImageUrl } from "next-cloudinary"
 import { addImage, updateImage } from "@/lib/actions/image.action"
 import { useRouter } from "next/navigation"
+import { InsufficientCreditsModal } from "./InsufficientCreditsModal"
 
 export const formSchema = z.object({
     title: z.string(),
@@ -45,14 +47,13 @@ export const formSchema = z.object({
 })
 
 export default function TransformationForm({ action, data = null, userId, type, creditBalance, config = null }: TransformationFormProps) {
-      
     const transformationType = transformationTypes[type];
-    const [ newTransformation, setNewTransformation ] = useState< Transformations | null >(null)
+    const [newTransformation, setNewTransformation] = useState< Transformations | null >(null)
     const [image, setImage] = useState(data);
-    const [isSubmitting, setIsSubmitting ] = useState(false)
-    const [ isTransforming, setIsTransforming ] = useState(false);
-    const [ transformationConfig, setTransformationConfig ] = useState(config);
-    const [ isPending, startTransition ] = useTransition()
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isTransforming, setIsTransforming] = useState(false);
+    const [transformationConfig, setTransformationConfig] = useState(config);
+    const [isPending, startTransition] = useTransition()
     const  router = useRouter()
 
     const initiaValues = data && action === 'Update' ? {
@@ -67,7 +68,9 @@ export default function TransformationForm({ action, data = null, userId, type, 
         defaultValues: initiaValues
     })
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>, e: any ) {
+        e.preventDefault();
+
         setIsSubmitting(true);
 
         if (data || image) {
@@ -85,7 +88,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
                 width: image?.width,
                 height: image?.height,
                 config: transformationConfig,
-                secureURL: image?.secureUrl,
+                secureURL: image?.secureURL,
                 transformationURL:  transformationUrl,
                 aspectRatio: values.aspectRation,
                 prompt: values.prompt,
@@ -130,7 +133,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
         }
         setIsSubmitting(false)
     }
-    //TODO: Update creditFee to something else
+       
     const onTransformHandler = async () => {
         setIsTransforming(true);
 
@@ -141,7 +144,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
         setNewTransformation(null);
 
         startTransition(async () => {
-            await updateCredits(userId, -1 )
+            await updateCredits(userId, creditFee)
         })
     }
 
@@ -172,9 +175,16 @@ export default function TransformationForm({ action, data = null, userId, type, 
             }))
         }, 1000)
     }
+
+    useEffect(() => {
+        if (image && (type === 'restore' || type === 'removeBackground')) {
+            setNewTransformation(transformationType.config);
+        }
+    },[image, transformationType.config, type])
   return (
       <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              {creditBalance < Math.abs(creditFee) && <InsufficientCreditsModal />}
             <CustomField 
                 control={form.control}
                 name='title'

@@ -15,7 +15,7 @@ export async function createUser(user: CreateUserParams) {
 
         return JSON.parse(JSON.stringify(newUser));
     } catch (error) {
-        handleError(error);
+        handleError(error); 
     }
 }
 
@@ -74,7 +74,7 @@ export async function deleteUser(clerkId: string) {
 }
 
 // USE CREDITS
-export async function updateCredits(userId: string, creditFee: number) {
+export async function updateCredits(userId: string,  creditFee: number) {
     try {
         await connectToDatabase();
 
