@@ -173,7 +173,9 @@ export default function TransformationForm({ action, data = null, userId, type, 
                     value
                 }
             }))
-        }, 1000)
+        }, 1000)();
+
+        return onChangeField(value);
     }
 
     useEffect(() => {
@@ -204,6 +206,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
                             onValueChange={(value) =>{
                                 onSelectField(value, field.onChange)
                             }}
+                            value={field.value}
                         >
                             <SelectTrigger className="select-field">
                                 <SelectValue placeholder="Select size" />
@@ -231,7 +234,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
                             type === 'remove' ? 'Object to remove' : 'Object to recolor'
                         }
                         className="w-full"
-                        render={(({ field }) => (
+                        render={({ field }) => (
                             <Input 
                                 value={field.value}
                                 className="input-field"
@@ -242,7 +245,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
                                     field.onChange
                                 )}
                             />
-                        ))}
+                        )}
                     />
 
                     {type === 'recolor' && (
