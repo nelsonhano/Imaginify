@@ -5,6 +5,8 @@ import stripe from "stripe";
 
 export async function POST(request: Request) {
     const body = await request.text();
+    console.log('STRIPE WEBHOOK', body);
+    
 
     const sig = request.headers.get("stripe-signature") as string;
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -32,8 +34,10 @@ export async function POST(request: Request) {
             buyerId: metadata?.buyerId || "",
             createdAt: new Date(),
         };
-
+        console.log('STRIPE TRANSACTION WEBHOOK', transaction);
+        
         const newTransaction = await createTransaction(transaction);
+        console.log('STRIPE TRANSACTION WEBHOOK TO DATABASE', newTransaction);
 
         return NextResponse.json({ message: "OK", transaction: newTransaction });
     }

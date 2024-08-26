@@ -8,7 +8,7 @@ import Transaction from '../database/models/transaction.model';
 import { updateCredits } from './user.actions';
 
 export async function checkoutCredits(transaction: CheckoutTransactionParams) {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
     const amount = Number(transaction.amount) * 100;
 
@@ -35,7 +35,7 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
         cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
     })
 
-    redirect(session.url!)
+    redirect(session.url as string);
 }
 
 export async function createTransaction(transaction: CreateTransactionParams) {
