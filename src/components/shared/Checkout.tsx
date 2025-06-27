@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { checkoutCredits } from "@/lib/actions/transaction.action";
 
 import { Button } from "../ui/button";
+import {log} from "node:util";
 
 const Checkout = ({
     plan,
@@ -22,7 +23,7 @@ const Checkout = ({
     const { toast } = useToast();
 
     useEffect(() => {
-        loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+        loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!).then(r => console.log(r));
     }, []);
 
     useEffect(() => {
@@ -45,7 +46,7 @@ const Checkout = ({
                 className: "error-toast",
             });
         }
-    }, []);
+    }, [toast]);
 
     const onCheckout = async () => {
         const transaction = {

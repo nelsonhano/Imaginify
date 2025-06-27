@@ -1,5 +1,6 @@
 import MobileNav from "@/components/shared/MobileNav"
 import SiderBar from "@/components/shared/SiderBar"
+import React from "react";
 
 function Layout(
     { children }: {

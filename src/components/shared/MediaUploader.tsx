@@ -1,10 +1,10 @@
-'use client '
 
 import { useToast } from "@/components/ui/use-toast";
 import { CldImage, CldUploadWidget } from "next-cloudinary";
 import { dataUrl, getImageSize } from "@/lib/utils";
 import Image from "next/image";
 import { PlaceholderValue } from "next/dist/shared/lib/get-img-props";
+import React from "react";
 
 type MediaUploaderProps = {
   onValueChange: (value:string) => void;
@@ -26,7 +26,7 @@ export default function MediaUploader({
       setImage((prevState:any) => ({
         ...prevState,
         publicId: result?.info?.public_id,
-        width: result?.info?.height,
+        width: result?.info?.width,
         secureURL: result?.info?.secure_url 
       }));
 
