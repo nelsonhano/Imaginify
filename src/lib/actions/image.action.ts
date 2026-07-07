@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 import { Stripe } from 'stripe';
+import { auth } from '@clerk/nextjs/server';
 
 import { connectToDatabase } from "../database/mongoose";
 import Image from '../database/models/image.model';
@@ -20,6 +21,14 @@ const populateUser = (query: any) => query.populate({
 export async function addImage({ image, userId, path}: AddImageParams) {
     try {
         await connectToDatabase();
+
+        const { userId: clerkId } = auth();
+        if (!clerkId) throw new Error("Unauthorized");
+
+        const currentUser = await User.findOne({ clerkId });
+        if (!currentUser || currentUser._id.toString() !== userId) {
+            throw new Error("Unauthorized");
+        }
 
         const creator = await User.findById(userId);
         
@@ -46,13 +55,21 @@ export async function updateImage({ image, userId, path }: UpdateImageParams) {
     try { 
         await connectToDatabase();
 
+        const { userId: clerkId } = auth();
+        if (!clerkId) throw new Error("Unauthorized");
+
+        const currentUser = await User.findOne({ clerkId });
+        if (!currentUser || currentUser._id.toString() !== userId) {
+            throw new Error("Unauthorized");
+        }
+
         const imageToUpdate = await Image.findById(image._id);
 
-        if (!imageToUpdate || imageToUpdate.author.toHexString() !== userId) {
+        if (!imageToUpdate || imageToUpdate.creator.toString() !== userId) {
             throw new Error("Unauthorized or Image Not Found");
         }
 
-        const updateImage = await Image.findByIdAndUpdate(
+        const updatedImage = await Image.findByIdAndUpdate(
             imageToUpdate._id,
             image,
             {new: true}
@@ -60,7 +77,7 @@ export async function updateImage({ image, userId, path }: UpdateImageParams) {
 
         revalidatePath(path)
 
-        return JSON.parse(JSON.stringify(updateImage ));
+        return JSON.parse(JSON.stringify(updatedImage ));
     } catch (error) {
         handleError(error)
     }
@@ -71,6 +88,19 @@ export async function updateImage({ image, userId, path }: UpdateImageParams) {
 export async function deleteImage(imageId: string) {
     try {
         await connectToDatabase();
+
+        const { userId: clerkId } = auth();
+        if (!clerkId) throw new Error("Unauthorized");
+
+        const currentUser = await User.findOne({ clerkId });
+        if (!currentUser) throw new Error("User not found");
+
+        const image = await Image.findById(imageId);
+        if (!image) throw new Error("Image not found");
+
+        if (image.creator.toString() !== currentUser._id.toString()) {
+            throw new Error("Unauthorized");
+        }
 
         await Image.findByIdAndDelete(imageId);
     } catch (error) {
@@ -167,12 +197,12 @@ export async function getUserImages({
 
         const skipAmount = (Number(page) - 1) * limit;
 
-        const images = await populateUser(Image.find({ author: userId }))
+        const images = await populateUser(Image.find({ creator: userId }))
             .sort({ updatedAt: -1 })
             .skip(skipAmount)
             .limit(limit);
 
-        const totalImages = await Image.find({ author: userId }).countDocuments();
+        const totalImages = await Image.find({ creator: userId }).countDocuments();
 
         return {
             data: JSON.parse(JSON.stringify(images)),

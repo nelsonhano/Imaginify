@@ -46,9 +46,9 @@ export default function TransformedImage({
                 /> 
             </button>
         )}
-      </div>
+    </div>
 
-      {image?.publicId && transformationConfig ? (
+    {image?.publicId && transformationConfig ? (
         <div className="relative">
             <CldImage 
                 width={getImageSize(type, image, 'width')}

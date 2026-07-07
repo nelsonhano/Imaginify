@@ -11,7 +11,7 @@ async function Home({ searchParams }: SearchParamProps) {
   const images = await getAllImages({ page, searchQuery });
 
   return (
-     <>
+    <>
       <section className="home">
         <h1 className="home-heading">
           Unleash Your Creative Vision with Imaginify

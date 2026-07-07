@@ -9,12 +9,6 @@ import { z } from "zod"
 import { useTransition } from 'react'
 import {
     Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
 } from "@/components/ui/form"
 import {
     Select,
@@ -40,7 +34,7 @@ import { InsufficientCreditsModal } from "./InsufficientCreditsModal"
 
 export const formSchema = z.object({
     title: z.string(),
-    aspectRation: z.string().optional(),
+    aspectRatio: z.string().optional(),
     color: z.string().optional(),
     prompt: z.string().optional(),
     publicId: z.string()
@@ -90,7 +84,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
                 config: transformationConfig,
                 secureURL: image?.secureURL,
                 transformationURL:  transformationUrl,
-                aspectRatio: values.aspectRation,
+                aspectRatio: values.aspectRatio,
                 prompt: values.prompt,
                 color: values.color
             }
@@ -144,7 +138,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
         setNewTransformation(null);
 
         startTransition(async () => {
-            await updateCredits(userId, creditFee)
+            await updateCredits()
         })
     }
 
@@ -153,7 +147,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
         
         setImage((preState: any) => ({
             ...preState,
-            aspectRation: imageSize.aspectRatio,
+            aspectRatio: imageSize.aspectRatio,
             width: imageSize.width,
             height: imageSize.height
         }));
@@ -163,17 +157,22 @@ export default function TransformationForm({ action, data = null, userId, type, 
         return onChangeField(value)
     }
     
+    const debouncedSetNewTransformation = React.useMemo(
+        () =>
+            debounce((fieldName: string, value: string, type: string) => {
+                setNewTransformation((preState: any) => ({
+                    ...preState,
+                    [type]: {
+                        ...preState?.[type],
+                        [fieldName === 'prompt' ? 'prompt' : 'to']: value
+                    }
+                }));
+            }, 1000),
+        []
+    );
+
     const onInputChangeHandler = (fieldName: string, value: string, type: string, onChangeField: (value: string) => void) => {
-        debounce(() => {
-            setNewTransformation((preState: any) => ({
-                ...preState,
-                [type]: {
-                    ...preState?.[type],
-                    [fieldName === 'prompt' ? 'prompt' : 'to']:
-                    value
-                }
-            }))
-        }, 1000)();
+        debouncedSetNewTransformation(fieldName, value, type);
 
         return onChangeField(value);
     }
@@ -198,7 +197,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
             {type === 'fill' && (
                 <CustomField 
                     control={form.control}
-                    name="aspectRation"
+                    name="aspectRatio"
                     formLabel="Aspect Ratio"
                     className="w-full"
                     render={({field}) => (
@@ -259,7 +258,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
                                     value={field.value}
                                     className="input-field"
                                     onChange={(e) => onInputChangeHandler(
-                                        'prcolorompt',
+                                        'color',
                                         e.target.value,
                                         'recolor',
                                         field.onChange

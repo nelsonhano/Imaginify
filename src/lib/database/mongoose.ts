@@ -21,7 +21,9 @@ export const connectToDatabase = async (): Promise<Mongoose> => {
         cached.promise = mongoose.connect(MONGODB_URL, {
             dbName: 'Imaginify',
             bufferCommands: false,
-            // Removed useNewUrlParser and useUnifiedTopology as they are not needed in Mongoose 6+
+        }).catch((err) => {
+            cached.promise = null;
+            throw err;
         });
     }
 
