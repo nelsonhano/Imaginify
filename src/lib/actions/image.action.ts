@@ -180,7 +180,13 @@ export async function getAllImages({ limit = 9, page = 1, searchQuery = ''}: {
             savedImages,
         };
     } catch (error) {
-        handleError(error)
+        console.error("Failed to load images from database:", error);
+        return {
+            data: [],
+            totalPage: 1,
+            totalPages: 1,
+            savedImages: 0,
+        };
     }
 }
 
@@ -213,6 +219,12 @@ export async function getUserImages({
             totalImages,
         };
     } catch (error) {
-        handleError(error);
+        console.error("Failed to load user images from database:", error);
+        return {
+            data: [],
+            totalPages: 1,
+            totalPage: 1,
+            totalImages: 0,
+        };
     }
 }

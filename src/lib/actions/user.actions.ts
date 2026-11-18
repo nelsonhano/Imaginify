@@ -14,11 +14,10 @@ export async function getUserById(userId: string) {
 
         const user = await User.findOne({ clerkId: userId });
 
-        if (!user) throw new Error("User not found");
-
-        return JSON.parse(JSON.stringify(user));
+        return user ? JSON.parse(JSON.stringify(user)) : null;
     } catch (error) {
-        handleError(error);
+        console.error("Failed to get user by id:", error);
+        return null;
     }
 }
 
