@@ -7,14 +7,23 @@ import { getUserById } from '@/lib/actions/user.actions';
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 
-const AddTransformationTypePage = async ({ params: {type}}: SearchParamProps) => {
-  const { title, subTitle } = transformationTypes[type];
+export const dynamic = "force-dynamic";
 
-  const { userId } = await auth();
+const AddTransformationTypePage = async ({ params }: SearchParamProps) => {
+  const { type } = await params;
+  const transformation = transformationTypes[type as TransformationTypeKey];
+
+  if (!transformation) redirect('/');
+
+  const { title, subTitle } = transformation;
+
+  const { userId } = auth();
 
   if (!userId) redirect('/sign-in')
 
   const user = await getUserById(userId);
+
+  if (!user) redirect('/');
 
   return (
     <>

@@ -4,9 +4,12 @@ import Image from "next/image"
 import { getAllImages } from "@/lib/actions/image.action";
 import { Collection } from "@/components/shared/Collection";
 
+export const dynamic = "force-dynamic";
+
 async function Home({ searchParams }: SearchParamProps) {
-  const page = Number(searchParams?.page) || 1;
-  const searchQuery = (searchParams?.query as string) || '';
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams?.page) || 1;
+  const searchQuery = (resolvedSearchParams?.query as string) || '';
   
   const images = await getAllImages({ page, searchQuery });
 

@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import Header from "@/components/shared/Header";
 import TransformedImage from "@/components/shared/TransformedImage";
@@ -9,10 +10,15 @@ import { getImageById } from "@/lib/actions/image.action";
 import { getImageSize } from "@/lib/utils";
 import { DeleteConfirmation } from "@/components/shared/DeleteConfirmation";
 
-const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
+export const dynamic = "force-dynamic";
+
+const ImageDetails = async ({ params }: SearchParamProps) => {
+  const { id } = await params;
   const { userId } = auth();
 
   const image = await getImageById(id);
+
+  if (!image) redirect("/");
 
   return (
     <>

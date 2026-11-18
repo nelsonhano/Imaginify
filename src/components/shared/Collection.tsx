@@ -21,11 +21,11 @@ import { Search } from "./Search";
 
 export const Collection = ({
     hasSearch = false,
-    images,
+    images = [],
     totalPages = 1,
     page,
 }: {
-    images: IImage[];
+    images?: IImage[];
     totalPages?: number;
     page: number;
     hasSearch?: boolean;
@@ -53,7 +53,7 @@ export const Collection = ({
                 {hasSearch && <Search />}
             </div>
 
-            {images.length > 0 ? (
+            {images && images.length > 0 ? (
                 <ul className="collection-list">
                     {images.map((image, i) => (
                         <Card image={image} key={i} />

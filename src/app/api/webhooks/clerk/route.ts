@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     // Get the headers
-    const headerPayload = headers();
+    const headerPayload = await headers();
     const svix_id = headerPayload.get("svix-id");
     const svix_timestamp = headerPayload.get("svix-timestamp");
     const svix_signature = headerPayload.get("svix-signature");
@@ -70,10 +70,10 @@ export async function POST(req: Request) {
         const user = {
             clerkId: id,
             email: email_addresses[0].email_address,
-            username: username,
-            firstName: first_name,
-            lastName: last_name,
-            photo: image_url,
+            username: username || email_addresses[0]?.email_address.split('@')[0] || id,
+            firstName: first_name || "",
+            lastName: last_name || "",
+            photo: image_url || "/assets/icons/profile.svg",
         };
 
         const newUser = await createUser(user);
@@ -95,12 +95,11 @@ export async function POST(req: Request) {
     if (eventType === "user.updated") {
         const { id, image_url, first_name, last_name, username } = evt.data;
 
-        const user = {
-            firstName: first_name,
-            lastName: last_name,
-            username: username!,
-            photo: image_url,
-        };
+        const user: any = {};
+        if (first_name !== undefined) user.firstName = first_name;
+        if (last_name !== undefined) user.lastName = last_name;
+        if (username) user.username = username;
+        if (image_url) user.photo = image_url;
 
         const updatedUser = await updateUser(id, user);
 

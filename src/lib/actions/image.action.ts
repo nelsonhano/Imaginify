@@ -3,7 +3,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
-import { Stripe } from 'stripe';
 import { auth } from '@clerk/nextjs/server';
 
 import { connectToDatabase } from "../database/mongoose";
@@ -104,10 +103,9 @@ export async function deleteImage(imageId: string) {
 
         await Image.findByIdAndDelete(imageId);
     } catch (error) {
-        handleError(error)
-    } finally{
-        redirect('/')
+        handleError(error);
     }
+    redirect('/');
 }
 //GET IMAGE
 export async function getImageById(imageId: string) {
@@ -133,50 +131,54 @@ export async function getAllImages({ limit = 9, page = 1, searchQuery = ''}: {
     try {
         await connectToDatabase();
 
-        cloudinary.config({
-            cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-            api_key: process.env.NEXT_CLOUDINARY_CLOUD_KEY,
-            api_secret: process.env.NEXT_CLOUDINARY_CLOUD_SECRETE,
-            secure: true,
-        })
-
-        let expression = 'folder=imaginify';
+        let query: any = {};
 
         if (searchQuery) {
-            expression += ` AND ${searchQuery}`
-        }
+            try {
+                cloudinary.config({
+                    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+                    api_key: process.env.NEXT_CLOUDINARY_CLOUD_KEY,
+                    api_secret: process.env.NEXT_CLOUDINARY_CLOUD_SECRETE,
+                    secure: true,
+                });
 
-        const { resources } = await cloudinary.search
-            .expression(expression)
-            .execute();
+                const expression = `folder=imaginify AND ${searchQuery}`;
+                const { resources } = await cloudinary.search
+                    .expression(expression)
+                    .execute();
 
-        const resourcesIds = resources.map((resources: any) => resources.public_id);
+                const resourcesIds = resources.map((resource: any) => resource.public_id);
 
-        let query = {};
-
-        if (searchQuery) {
-            query = {
-                publicId: {
-                    $in: resourcesIds
-                }
+                query = {
+                    $or: [
+                        { publicId: { $in: resourcesIds } },
+                        { title: { $regex: searchQuery, $options: 'i' } }
+                    ]
+                };
+            } catch (searchError) {
+                console.error("Cloudinary search failed, falling back to database search:", searchError);
+                query = {
+                    title: { $regex: searchQuery, $options: 'i' }
+                };
             }
         }
 
         const skipAmount = (Number(page) - 1) * limit;
 
         const images = await populateUser(Image.find(query))
-            .sort({ updateAt: -1})
+            .sort({ updatedAt: -1 })
             .skip(skipAmount)
             .limit(limit);
             
-            const totalImages = await Image.find(query).countDocuments();
-            const savedImages = await Image.find().countDocuments();
+        const totalImages = await Image.find(query).countDocuments();
+        const savedImages = await Image.find().countDocuments();
 
-            return {
-                data: JSON.parse(JSON.stringify(images)),
-                totalPage: Math.ceil(totalImages / limit),
-                savedImages,
-            }
+        return {
+            data: JSON.parse(JSON.stringify(images)),
+            totalPage: Math.ceil(totalImages / limit),
+            totalPages: Math.ceil(totalImages / limit),
+            savedImages,
+        };
     } catch (error) {
         handleError(error)
     }
@@ -207,6 +209,8 @@ export async function getUserImages({
         return {
             data: JSON.parse(JSON.stringify(images)),
             totalPages: Math.ceil(totalImages / limit),
+            totalPage: Math.ceil(totalImages / limit),
+            totalImages,
         };
     } catch (error) {
         handleError(error);

@@ -33,6 +33,10 @@ export async function updateCredits() {
         const user = await User.findOne({ clerkId });
         if (!user) throw new Error("User not found");
 
+        if (user.creditBalance < 1) {
+            throw new Error("Insufficient credits");
+        }
+
         const updatedUser = await updateCreditsInternal(user._id, -1);
 
         return JSON.parse(JSON.stringify(updatedUser));

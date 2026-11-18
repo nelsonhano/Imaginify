@@ -7,13 +7,19 @@ import Header from "@/components/shared/Header";
 import { getUserById } from "@/lib/actions/user.actions";
 import { getUserImages } from "@/lib/actions/image.action";
 
+export const dynamic = "force-dynamic";
+
 const Profile = async ({ searchParams }: SearchParamProps) => {
-  const page = Number(searchParams?.page) || 1;
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams?.page) || 1;
   const { userId } = auth();
 
   if (!userId) redirect("/sign-in");
 
   const user = await getUserById(userId);
+
+  if (!user) redirect("/");
+
   const images = await getUserImages({ page, userId: user._id });
 
   return (
@@ -45,7 +51,7 @@ const Profile = async ({ searchParams }: SearchParamProps) => {
               height={50}
               className="size-9 md:size-12"
             />
-            <h2 className="h2-bold text-dark-600">{images?.data.length}</h2>
+            <h2 className="h2-bold text-dark-600">{images?.totalImages ?? images?.data?.length ?? 0}</h2>
           </div>
         </div>
       </section>

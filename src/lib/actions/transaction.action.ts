@@ -12,6 +12,8 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
 
     const amount = Number(transaction.amount) * 100;
 
+    const serverUrl = (process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').replace(/\/+$/, '');
+
     const session = await stripe.checkout.sessions.create({
         line_items: [
             {
@@ -31,8 +33,8 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
             buyerId: transaction.buyerId,
         },
         mode: 'payment',
-        success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/profile`,
-        cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/`,
+        success_url: `${serverUrl}/profile?success=true`,
+        cancel_url: `${serverUrl}/credits?canceled=true`,
     })
 
     redirect(session.url as string);
@@ -40,6 +42,10 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
 
 export async function createTransaction(transaction: CreateTransactionParams) {
     try {
+        if (!transaction.buyerId) {
+            throw new Error("Missing buyer ID for transaction");
+        }
+
         await connectToDatabase();
 
         // Create a new transaction with a buyerId

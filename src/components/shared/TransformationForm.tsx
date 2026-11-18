@@ -50,16 +50,16 @@ export default function TransformationForm({ action, data = null, userId, type, 
     const [isPending, startTransition] = useTransition()
     const  router = useRouter()
 
-    const initiaValues = data && action === 'Update' ? {
+    const initialValues = data && action === 'Update' ? {
         title: data?.title,
         aspectRatio: data?.aspectRatio,
         color: data?.color,
         prompt: data?.prompt,
-        publicId: data?. publicId
+        publicId: data?.publicId
     }: defaultValues
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: initiaValues
+        defaultValues: initialValues
     })
 
     async function onSubmit(values: z.infer<typeof formSchema>, e: any ) {
@@ -83,7 +83,8 @@ export default function TransformationForm({ action, data = null, userId, type, 
                 height: image?.height,
                 config: transformationConfig,
                 secureURL: image?.secureURL,
-                transformationURL:  transformationUrl,
+                transformationURL: transformationUrl,
+                transformationUrl: transformationUrl,
                 aspectRatio: values.aspectRatio,
                 prompt: values.prompt,
                 color: values.color
@@ -298,7 +299,7 @@ export default function TransformationForm({ action, data = null, userId, type, 
             <div className="flex flex-col gap-4">
                 <Button 
                     className="submit-button capitalize"
-                    type="submit"
+                    type="button"
                     disabled={isTransforming || newTransformation === null } 
                     onClick={onTransformHandler}
                 >

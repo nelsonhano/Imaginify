@@ -9,12 +9,16 @@ import { plans } from "../../../../constants";
 import { getUserById } from "@/lib/actions/user.actions";
 import Checkout from "@/components/shared/Checkout";
 
+export const dynamic = "force-dynamic";
+
 const Credits = async () => {
   const { userId } = auth();
 
   if (!userId) redirect("/sign-in");
 
   const user = await getUserById(userId);
+
+  if (!user) redirect("/");
 
   return (
     <>

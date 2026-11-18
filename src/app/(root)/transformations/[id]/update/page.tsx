@@ -7,13 +7,18 @@ import { transformationTypes } from "../../../../../../constants/index";
 import { getUserById } from "@/lib/actions/user.actions";
 import { getImageById } from "@/lib/actions/image.action";
 
-const Page = async ({ params: { id } }: SearchParamProps) => {
+export const dynamic = "force-dynamic";
+
+const Page = async ({ params }: SearchParamProps) => {
+  const { id } = await params;
   const { userId } = auth();
 
   if (!userId) redirect("/sign-in");
 
   const user = await getUserById(userId);
   const image = await getImageById(id);
+
+  if (!user || !image) redirect("/");
 
   const transformation =
     transformationTypes[image.transformationType as TransformationTypeKey];
