@@ -1,7 +1,7 @@
-import Header from '@/components/Header'
-import React from 'react'
+import Header from '@/components/shared/Header';
+import React from 'react';
 
-import { transformationTypes } from '../../../../../../constants';
+import { transformationTypes } from '../../../../../../constants/index';
 import TransformationForm from '@/components/shared/TransformationForm';
 import { getUserById } from '@/lib/actions/user.actions';
 import { redirect } from 'next/navigation';
@@ -10,7 +10,8 @@ import { auth } from '@clerk/nextjs/server';
 export const dynamic = "force-dynamic";
 
 const AddTransformationTypePage = async ({ params }: SearchParamProps) => {
-  const { type } = await params;
+  const resolvedParams = await params;
+  const type = resolvedParams?.type;
   const transformation = transformationTypes[type as TransformationTypeKey];
 
   if (!transformation) redirect('/');
@@ -19,7 +20,7 @@ const AddTransformationTypePage = async ({ params }: SearchParamProps) => {
 
   const { userId } = auth();
 
-  if (!userId) redirect('/sign-in')
+  if (!userId) redirect('/sign-in');
 
   const user = await getUserById(userId);
 
@@ -29,7 +30,7 @@ const AddTransformationTypePage = async ({ params }: SearchParamProps) => {
     <>
       <Header 
         title={title}
-        subtitle={subTitle}
+        subTitle={subTitle}
       />
       
       <section className="mt-10">
@@ -41,7 +42,7 @@ const AddTransformationTypePage = async ({ params }: SearchParamProps) => {
         />
       </section>
     </>
-  )
-}
+  );
+};
 
-export default AddTransformationTypePage
+export default AddTransformationTypePage;

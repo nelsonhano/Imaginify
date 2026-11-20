@@ -1,5 +1,4 @@
 import mongoose, { Mongoose } from "mongoose";
-require('dotenv').config()
 
 const MONGODB_URL = process.env.MONGODB_URL;
 
@@ -13,14 +12,17 @@ let cached: MongooseConnection = (global as any).mongoose || { conn: null, promi
 export const connectToDatabase = async (): Promise<Mongoose> => {
     if (cached.conn && mongoose.connection.readyState === 1) return cached.conn;
 
-    if (!MONGODB_URL) {
+    const mongoUrl = process.env.MONGODB_URL || MONGODB_URL;
+
+    if (!mongoUrl) {
         throw new Error("Missing MongoDB URL");
     }
 
     if (!cached.promise) {
-        cached.promise = mongoose.connect(MONGODB_URL, {
+        cached.promise = mongoose.connect(mongoUrl, {
             dbName: 'Imaginify',
             bufferCommands: false,
+            serverSelectionTimeoutMS: 5000,
         }).catch((err) => {
             cached.promise = null;
             throw err;
